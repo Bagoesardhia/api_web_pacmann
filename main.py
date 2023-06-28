@@ -4,6 +4,8 @@ from connection.connection import conn
 
 from modules.login.controllers.login_controller import logincontroller
 
+from modules.task.controllers.task_controller import taskController
+
 app = Flask(__name__)
 
 def output(id):
@@ -92,6 +94,17 @@ def login():
     password = request.form['password']
     data = logincontroller.main_login(username, password)
     response = {'results': data}
+    return jsonify(response)
+
+@app.route('/task', methods=['POST'])
+def insertTask():
+    project = request.form['project']
+    desc = request.form['desc']
+    start = request.form['start']
+    end = request.form['end']
+    data = taskController.main_task(project,desc,start,end)
+    response = {'results': data}
+    print(data)
     return jsonify(response)
 
 
