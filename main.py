@@ -1,4 +1,6 @@
 from flask import Flask, jsonify, request
+from datetime import datetime
+from flask_cors import CORS
 
 from connection.connection import conn
 
@@ -6,7 +8,9 @@ from modules.login.controllers.login_controller import logincontroller
 
 from modules.task.controllers.task_controller import taskController
 
+
 app = Flask(__name__)
+CORS(app)
 
 def output(id):
     cursor = conn.cursor()
@@ -88,6 +92,7 @@ def register():
         print (v_user)
         return jsonify({'results':'Name Already Exists'})    
 
+## Modules Login
 @app.route('/api/v1/login', methods=['POST'])
 def login():
     username = request.form['username']
@@ -96,16 +101,87 @@ def login():
     response = {'results': data}
     return jsonify(response)
 
-@app.route('/task', methods=['POST'])
+## Module Task
+
+## GET ALL TASKS
+@app.route('/task', methods=['GET'])
+def getTask():
+    data = taskController.main_task(p_type= 'A',
+                                    p_project = None, 
+                                    p_desc= None, 
+                                    p_start= None, 
+                                    p_end = None,
+                                    p_createby = None, 
+                                    p_createdate = None,
+                                    p_updateby = None, 
+                                    p_updatedate = None,
+                                    p_id= None
+                                    )
+    response = {'results': data}
+    return jsonify(data)
+
+## INSERT TASK
+@app.route('/task/new', methods=['POST'])
 def insertTask():
+    #id = request.form['id']
+    #project = request.form['project']
+    #desc = request.form['desc']
+    #start = request.form['start']
+    #end = request.form['end']
+    #createdby = request.form['createdby']
+    #data1 = request.get_json()
+    #response = data['id','project','desc','start','end','createdby']
+    #response = data1['id','project']
+    id = request.get_json()['id']
+    project = request.get_json()['project']
+    desc = request.get_json()['desc']
+    start = request.get_json()['start']
+    end = request.get_json()['end']
+    createdby = request.get_json()['createdby']
+    #id = request.get_json('id')
+    #project = request.get_json('project')
+    #desc = request.get_json('desc')
+    #start = request.get_json('start')
+    #end = request.get_json('end')
+    #createdby = request.get_json('createdby')
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    data = taskController.main_task(p_type= 'N',
+                                    p_id = id,
+                                    p_project = project, 
+                                    p_desc= desc, 
+                                    p_start= start, 
+                                    p_end = end,
+                                    p_createby = createdby, 
+                                    p_createdate = current_date,
+                                    p_updateby = None ,
+                                    p_updatedate = None)
+    response = {'results': data}
+    return jsonify(response)
+
+## UPDATE TASK
+@app.route('/task/update', methods=['POST'])
+def updateTask():
     project = request.form['project']
     desc = request.form['desc']
     start = request.form['start']
     end = request.form['end']
-    data = taskController.main_task(project,desc,start,end)
+    updateby = request.form['updateby']
+    id = request.form['id']
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    data = taskController.main_task(p_type= 'U',
+                                    p_project = project, 
+                                    p_desc= desc, 
+                                    p_start= start, 
+                                    p_end = end,
+                                    p_createby = '', 
+                                    p_createdate = '',
+                                    p_updateby = updateby, 
+                                    p_updatedate = current_date,
+                                    p_id= id
+                                    )
     response = {'results': data}
-    print(data)
     return jsonify(response)
+
 
 
 if __name__ == '__main__':

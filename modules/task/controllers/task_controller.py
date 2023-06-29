@@ -1,12 +1,50 @@
 from connection.connection import conn
-
 from ..models.queries_models import queries_task
 
 
 class taskController():
-    def main_task(p_project, p_desc, p_start, p_end):
-        insertTask = taskController.insert_task(p_project, p_desc, p_start, p_end)
-        if insertTask == 0:
+    def main_task(p_type, p_id, p_project, p_desc, p_start, p_end, p_createby, p_createdate, p_updateby, p_updatedate):
+        if p_type == 'N':
+            v_data = taskController.insert_task(p_id, p_project, p_desc, p_start, p_end, p_createby, p_createdate)
+        elif p_type == 'U':
+            v_data = taskController.updateTask(p_project, p_desc, p_start, p_end, p_updateby, p_updatedate, p_id)
+        elif p_type == 'A':
+            v_data = taskController.get_task()
+        return v_data
+
+    def check_task():
+        None
+    
+    def get_task():
+        try:
+            cursor = conn.cursor()
+            queries = queries_task.getAll()
+            cursor.execute(queries)
+            data = cursor.fetchall()
+            data_list = []
+            for row in data:
+                data_dict = {
+                    'id': row[0],
+                    'name': row[1],
+                    'desc': row[2],
+                    'start': row[3],
+                    'end': row[4],
+                    'auth':row[5]
+                }
+                data_list.append(data_dict)
+            return data_list
+        except Exception as e:
+            v_data = {'Err':str(e)
+                    }
+            return v_data
+            
+
+    def insert_task(p_id, p_project, p_desc, p_start, p_end, p_createby, p_createdate):
+        try:
+            cursor = conn.cursor()
+            queries = queries_task.insertTask()
+            cursor.execute(queries, (p_id, p_project, p_desc, p_start, p_end, p_createby, p_createdate))
+            conn.commit()
             v_data = {'Status':'Task Berhasil Ditambahkan',
                       'Project Name': p_project,
                       'Project Desc': p_desc,
@@ -14,17 +52,35 @@ class taskController():
                       'Project End': p_end,
                     }
             return v_data
-
-    def check_task():
-        None
-
-    def insert_task(p_project, p_desc, p_start, p_end):
+        except Exception as e:
+            v_data = {'Status':'Error Inserting Task',
+                      'Project Name': p_project,
+                      'Project Desc': p_desc,
+                      'Project Start': p_start,
+                      'Project End': p_end,
+                      'Err Code': str(e)
+                    }
+            return v_data
+    
+    def updateTask(p_project, p_desc, p_start, p_end, p_updateby, p_updatedate, p_id):
         try:
             cursor = conn.cursor()
-            queries = queries_task.insertTask()
-            cursor.execute(queries, (p_project, p_desc, p_start, p_end))
+            queries = queries_task.updateTask()
+            cursor.execute(queries, (p_project, p_desc, p_start, p_end, p_updateby, p_updatedate, p_id))
             conn.commit()
-            return 0
+            v_data = {'Status':'Task Berhasil Di update',
+                      'Project Name': p_project,
+                      'Project Desc': p_desc,
+                      'Project Start': p_start,
+                      'Project End': p_end,
+                    }
+            return v_data
         except Exception as e:
-            data = 'error insert data task ', e
-            return data
+            v_data = {'Status':'Error Updating Task',
+                      'Project Name': p_project,
+                      'Project Desc': p_desc,
+                      'Project Start': p_start,
+                      'Project End': p_end,
+                      'Err Code': str(e)
+                    }
+            return v_data
