@@ -8,6 +8,8 @@ from modules.login.controllers.login_controller import logincontroller
 
 from modules.task.controllers.task_controller import taskController
 
+from modules.register.controllers.register_controller import registerController
+
 
 app = Flask(__name__)
 CORS(app)
@@ -92,14 +94,23 @@ def register():
         print (v_user)
         return jsonify({'results':'Name Already Exists'})    
 
+
 ## Modules Login
 @app.route('/api/v1/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
+    username = request.get_json()['username']
+    password = request.get_json()['password']
     data = logincontroller.main_login(username, password)
     response = {'results': data}
-    return jsonify(response)
+    if data != 0:
+        response = {'results': data}
+        return jsonify(response), 401
+    else:
+        response = {'results': data,
+                    'name': username
+                    }
+        return jsonify(response), 200
+
 
 ## Module Task
 
@@ -115,7 +126,29 @@ def getTask():
                                     p_createdate = None,
                                     p_updateby = None, 
                                     p_updatedate = None,
-                                    p_id= None
+                                    p_id= None,
+                                    p_owner = None, 
+                                    p_asign = None, 
+                                    p_status = None
+                                    )
+    response = {'results': data}
+    return jsonify(data)
+
+@app.route('/task/v1', methods=['GET'])
+def getTaskv1():
+    data = taskController.main_task(p_type= 'AN',
+                                    p_project = None, 
+                                    p_desc= None, 
+                                    p_start= None, 
+                                    p_end = None,
+                                    p_createby = None, 
+                                    p_createdate = None,
+                                    p_updateby = None, 
+                                    p_updatedate = None,
+                                    p_id= None,
+                                    p_owner = None, 
+                                    p_asign = None, 
+                                    p_status = None
                                     )
     response = {'results': data}
     return jsonify(data)
@@ -123,27 +156,16 @@ def getTask():
 ## INSERT TASK
 @app.route('/task/new', methods=['POST'])
 def insertTask():
-    #id = request.form['id']
-    #project = request.form['project']
-    #desc = request.form['desc']
-    #start = request.form['start']
-    #end = request.form['end']
-    #createdby = request.form['createdby']
-    #data1 = request.get_json()
-    #response = data['id','project','desc','start','end','createdby']
-    #response = data1['id','project']
     id = request.get_json()['id']
     project = request.get_json()['project']
     desc = request.get_json()['desc']
     start = request.get_json()['start']
     end = request.get_json()['end']
     createdby = request.get_json()['createdby']
-    #id = request.get_json('id')
-    #project = request.get_json('project')
-    #desc = request.get_json('desc')
-    #start = request.get_json('start')
-    #end = request.get_json('end')
-    #createdby = request.get_json('createdby')
+    owner = request.get_json()['owner']
+    asign = request.get_json()['asign']
+    status = request.get_json()['status']
+    
     current_date = datetime.now().strftime("%Y-%m-%d")
     data = taskController.main_task(p_type= 'N',
                                     p_id = id,
@@ -154,22 +176,31 @@ def insertTask():
                                     p_createby = createdby, 
                                     p_createdate = current_date,
                                     p_updateby = None ,
-                                    p_updatedate = None)
+                                    p_updatedate = None,
+                                    p_owner = owner, 
+                                    p_asign = asign, 
+                                    p_status = status)
     response = {'results': data}
     return jsonify(response)
 
 ## UPDATE TASK
 @app.route('/task/update', methods=['POST'])
 def updateTask():
-    project = request.form['project']
-    desc = request.form['desc']
-    start = request.form['start']
-    end = request.form['end']
-    updateby = request.form['updateby']
-    id = request.form['id']
+    ## PARAMETERS QUERY
+    id = request.get_json()['id']
+
+    ## BODY
+    desc = request.get_json()['desc']
+    start = request.get_json()['start']
+    end = request.get_json()['end']
+    updateby = request.get_json()['updateby']
+    asign = request.get_json()['asign']
+    status = request.get_json()['status']
+
     current_date = datetime.now().strftime("%Y-%m-%d")
+
     data = taskController.main_task(p_type= 'U',
-                                    p_project = project, 
+                                    p_project = '', 
                                     p_desc= desc, 
                                     p_start= start, 
                                     p_end = end,
@@ -177,7 +208,66 @@ def updateTask():
                                     p_createdate = '',
                                     p_updateby = updateby, 
                                     p_updatedate = current_date,
-                                    p_id= id
+                                    p_id= id,
+                                    p_owner = "",
+                                    p_asign = asign, 
+                                    p_status = status
+                                    )
+    response = {'results': data}
+    return jsonify(response)
+
+## GET TASK BY ID
+@app.route('/task/id', methods=['GET'])
+def getTaskID():
+    try:
+        id = request.args.get('id')
+        ##id = request.args.get('id')
+        data = taskController.main_task(p_type= 'AD',
+                                        p_project = '', 
+                                        p_desc= '', 
+                                        p_start= '', 
+                                        p_end = '',
+                                        p_createby = '', 
+                                        p_createdate = '',
+                                        p_updateby = '', 
+                                        p_updatedate = '',
+                                        p_id= id,
+                                        p_owner = None, 
+                                        p_asign = None, 
+                                        p_status = None
+                                        )
+        print(id)
+        response = {'results': data}
+        return jsonify(response)
+    except Exception as e:
+        response = {'err main': str(e)}
+        return jsonify(response)
+
+## MODULES REGISTER
+
+## GET ALL USERS
+@app.route('/users', methods=['GET'])
+def getUsers():
+    data = registerController.main(p_type= 'A'
+                                    )
+    response = {'results': data}
+    return jsonify(response)
+
+## INSERT NEW USERS
+@app.route('/users/register', methods=['POST'])
+def newUsers():
+    name = request.get_json()['name']
+    username = request.get_json()['username']
+    password = request.get_json()['password']
+    role = request.get_json()['role']
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    data = registerController.main(p_type = 'N', 
+                                   p_name = name, 
+                                   p_username = username, 
+                                   p_password = password, 
+                                   p_role = role, 
+                                   p_created_by = 'ADMIN',
+                                   p_created_date = current_date
                                     )
     response = {'results': data}
     return jsonify(response)

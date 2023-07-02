@@ -1,5 +1,5 @@
 def queries_login():
-    data = "SELECT CUST_USERNAME, CUST_PASSWORD FROM APPL.APPL_MST_USER WHERE CUST_USERNAME = %s AND CUST_PASSWORD = %s"
+    data = "SELECT user_fullname FROM appl.appl_mst_user WHERE user_username = %s AND user_password = %s"
     return data
 
 def queries_last_open():

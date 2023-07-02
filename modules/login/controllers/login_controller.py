@@ -12,12 +12,12 @@ class logincontroller():
             v_data = {'Status':'Login Berhasil',
                       'Data': v_user
                     }
-            return v_data
+            return 0
         else:
             v_data = {'Status':'Login Failed',
                       'Data': v_user
                       }
-            return v_data
+            return 1
 
 
     def check_users(p_user, p_pass):
